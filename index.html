@@ -2,9 +2,6 @@
 <html>
 <head>
 <title>DrinkUp</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1e88e5">
-
 <style>
 
 body{
@@ -206,11 +203,12 @@ body: "Amazing work! You completed today's goal!"
 
 function updateUI(){
 document.getElementById("counter").innerText = count;
-et percentage = (count/goal)*100;
+let percentage = (count/goal)*100;
 if(percentage > 100){
     percentage = 100;
 }
 document.getElementById("progress").style.width = percentage + "%";
+}
 
 function motivate(){
 let messages = [
@@ -262,12 +260,6 @@ showDashboard();
 
 }
 
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
 </script>
 
 </body>
