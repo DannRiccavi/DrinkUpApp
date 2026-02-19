@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DrinkUp</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e88e5">
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+margin:0;
+background: linear-gradient(to bottom, #dff3ff, #ffffff);
+text-align:center;
+}
+
+.screen{
+display:none;
+padding:40px;
+}
+
+.active{
+display:block;
+}
+
+.container{
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
+max-width:420px;
+margin:auto;
+}
+
+h1{
+color:#1e88e5;
+}
+
+input, select{
+padding:8px;
+margin:8px;
+width:80%;
+}
+
+button{
+padding:10px 20px;
+margin:10px;
+background:#1e88e5;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+button:hover{
+background:#1565c0;
+}
+
+.progress-bar{
+width:100%;
+background:#e0e0e0;
+border-radius:20px;
+margin-top:20px;
+}
+
+.progress{
+height:20px;
+width:0%;
+background:#1e88e5;
+border-radius:20px;
+transition:0.5s;
+}
+
+.stat{
+margin-top:10px;
+font-weight:bold;
+}
+
+.quote{
+margin-top:15px;
+font-style:italic;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome" class="screen active">
+<div class="container">
+<h1>💧 Welcome to DrinkUp</h1>
+<p>What’s your name?</p>
+<input type="text" id="username" placeholder="Your name">
+<br>
+<button onclick="startSetup()">Continue</button>
+</div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup" class="screen">
+<div class="container">
+<h1>Set Your Hydration Plan</h1>
+
+<p>What time does your day start?</p>
+<input type="time" id="startTime">
+
+<p>What time does your day end?</p>
+<input type="time" id="endTime">
+
+<p>How many glasses do you want to drink today?</p>
+<input type="number" id="goal" value="8">
+
+<p>How difficult is it to remember?</p>
+<select id="difficulty">
+<option>Easy</option>
+<option>Medium</option>
+<option>Hard</option>
+</select>
+
+<br>
+<button onclick="launchApp()">Start My Day</button>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="screen">
+<div class="container">
+
+<h1 id="greeting"></h1>
+
+<h2><span id="counter">0</span> glasses</h2>
+
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+
+<button onclick="drinkWater()">💧 I Drank Water</button>
+
+<div class="stat">Daily Goal: <span id="goalDisplay"></span></div>
+<div class="stat">Streak: <span id="streak"></span> days 🔥</div>
+
+<p class="quote" id="quote">
+“A habit is not created by making it perfect, but constantly returning to it.”
+</p>
+
+</div>
+</div>
+
+<script>
+
+let count = 0;
+let goal = 8;
+let streak = 0;
+
+function startSetup(){
+let name = document.getElementById("username").value;
+if(name === "") return alert("Please enter your name");
+
+localStorage.setItem("username", name);
+showScreen("setup");
+}
+
+function launchApp(){
+goal = parseInt(document.getElementById("goal").value);
+localStorage.setItem("goal", goal);
+localStorage.setItem("count", 0);
+localStorage.setItem("lastDate", new Date().toDateString());
+
+count = 0;
+showDashboard();
+requestNotificationPermission();
+scheduleReminder();
+}
+
+function showDashboard(){
+showScreen("dashboard");
+
+let name = localStorage.getItem("username");
+document.getElementById("greeting").innerText = "Stay Hydrated, " + name + "!";
+
+goal = parseInt(localStorage.getItem("goal"));
+count = parseInt(localStorage.getItem("count")) || 0;
+streak = parseInt(localStorage.getItem("streak")) || 0;
+
+document.getElementById("goalDisplay").innerText = goal;
+document.getElementById("streak").innerText = streak;
+
+updateUI();
+}
+
+function drinkWater(){
+count++;
+localStorage.setItem("count", count);
+updateUI();
+motivate();
+
+if(count >= goal){
+streak++;
+localStorage.setItem("streak", streak);
+new Notification("🎉 Goal Achieved!", {
+body: "Amazing work! You completed today's goal!"
+});
+}
+}
+
+function updateUI(){
+document.getElementById("counter").innerText = count;
+et percentage = (count/goal)*100;
+if(percentage > 100){
+    percentage = 100;
+}
+document.getElementById("progress").style.width = percentage + "%";
+
+function motivate(){
+let messages = [
+"You're building consistency!",
+"Hydration fuels success!",
+"Small steps create strong habits!",
+"Discipline beats motivation!",
+"Keep going, you're doing great!"
+];
+
+let random = messages[Math.floor(Math.random()*messages.length)];
+document.getElementById("quote").innerText = random;
+}
+
+function requestNotificationPermission(){
+if(Notification.permission !== "granted"){
+Notification.requestPermission();
+}
+}
+
+function scheduleReminder(){
+setInterval(function(){
+new Notification("💧 DrinkUp Reminder", {
+body: "Time to drink water!"
+});
+}, 120000);
+}
+
+function showScreen(id){
+document.getElementById("welcome").classList.remove("active");
+document.getElementById("setup").classList.remove("active");
+document.getElementById("dashboard").classList.remove("active");
+document.getElementById(id).classList.add("active");
+}
+
+window.onload = function(){
+
+let lastDate = localStorage.getItem("lastDate");
+let today = new Date().toDateString();
+
+if(lastDate && lastDate !== today){
+localStorage.setItem("count", 0);
+localStorage.setItem("lastDate", today);
+}
+
+if(localStorage.getItem("username")){
+showDashboard();
+}
+
+}
+
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
